@@ -6,7 +6,7 @@ require("dotenv").config();
 const app = express();
 //for change the normal api to websocketAPI
 const cors = require("cors");
-const socketPort = 8000;
+const socketPort = process.env.SOCKET_PORT || 8000;
 const { emit } = require("process");
 const server = require("http").createServer(app);
 const io = require("socket.io")(server);
