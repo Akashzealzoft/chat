@@ -7,9 +7,19 @@ exports.getAllChats = async (req, res) => {
     // Using await to asynchronously retrieve all values from the "messages" table
     const messages = await Message.findAll({
       where: {
-        [Sequelize.Op.and]: [
-          { senderId: senderIdToMatch },
-          { receiverId: receiverIdToMatch },
+        [Sequelize.Op.or]: [
+          {
+            [Sequelize.Op.and]: [
+              { senderId: senderIdToMatch },
+              { recieverId: receiverIdToMatch },
+            ],
+          },
+          {
+            [Sequelize.Op.and]: [
+              { senderId: receiverIdToMatch }, // Note the swap of senderId and receiverId
+              { recieverId: senderIdToMatch },
+            ],
+          },
         ],
       },
     });
@@ -41,12 +51,29 @@ exports.createMessage = async (req, res) => {
 
 /*Socket DB messages */
 
-exports.getSocketMessages = async () => {
+exports.getSocketMessages = async (msg) => {
   try {
     // Using Sequelize's findAll method to retrieve the last 10 messages
-    const messages = await Message.findAll({
-      order: [["ID", "DESC"]],
-      limit: 10,
+    console.log(msg);
+    const { senderId, recieverId } = msg;
+    console.log(senderId, recieverId);
+    const messages = await await Message.findAll({
+      where: {
+        [Sequelize.Op.or]: [
+          {
+            [Sequelize.Op.and]: [
+              { senderId: senderId },
+              { recieverId: recieverId },
+            ],
+          },
+          {
+            [Sequelize.Op.and]: [
+              { senderId: recieverId }, // Note the swap of senderId and receiverId
+              { recieverId: senderId },
+            ],
+          },
+        ],
+      },
     });
 
     // Returning the retrieved messages
@@ -66,6 +93,8 @@ exports.createSocketMessage = async (message) => {
     console.log("im the message", message["text"]);
     // Using Sequelize's create method to insert a new message
     const newMessage = await Message.create({
+      senderId: message["senderId"],
+      recieverId: message["recieverId"],
       text: message["text"],
       username: message["username"],
     });

@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const Message = require("./models/chatmodel");
 const User = require("./models/usermodel");
+require("dotenv").config();
 const app = express();
 //for change the normal api to websocketAPI
 const cors = require("cors");
@@ -19,7 +20,7 @@ const {
 app.use(cors());
 
 const { connectDb } = require("./config/database");
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 //routes
 const chat = require("./routes/chatroutes");
@@ -41,8 +42,8 @@ app.get("/", (request, response) => {
   response.json({ info: "Our app is up and running" });
 });
 
-const emitMostRecentMessges = () => {
-  getSocketMessages()
+const emitMostRecentMessges = (msg) => {
+  getSocketMessages(msg)
     .then((result) => io.emit("chat message", result))
     .catch(console.log);
 };
@@ -54,7 +55,7 @@ io.on("connection", (socket) => {
     console.log(msgObj);
     createSocketMessage(msgObj)
       .then(() => {
-        emitMostRecentMessges();
+        emitMostRecentMessges(msgObj);
       })
       .catch((err) => io.emit(err));
   });

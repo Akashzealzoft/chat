@@ -37,6 +37,7 @@ exports.loginUser = async (req, res) => {
     return res.status(200).json({
       message: "Login successfull",
       id: user._id,
+      name: user.name,
     });
   } catch (error) {
     console.log(error.message);
